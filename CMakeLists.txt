@@ -212,8 +212,8 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable(robot_info_gui_node src/robot_gui.cpp)
+add_executable(robot_gui_node src/robot_gui.cpp)
 
-target_link_libraries(robot_info_gui_node
+target_link_libraries(robot_gui_node
   ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
 )
