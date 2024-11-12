@@ -43,25 +43,29 @@ public:
       cvui::text(frame, 20, 180, "Maximum Payload: " + maximum_payload_);
 
       cvui::text(frame, 400, 30, "Teleoperation Control");
-      if (cvui::button(frame, 400, 60, "Increase Speed (X)")) {
-        linear_speed_ += 0.1;
+      if (cvui::button(frame, 400, 60, "Forward")) {
+        linear_speed_ = 0.5; // Move forward with positive speed
+        angular_speed_ = 0.0;
+      publishVelocities();
+            }
+      if (cvui::button(frame, 400, 100, "Backward")) {
+        linear_speed_ = -0.5; // Move backward with negative speed
+        angular_speed_ = 0.0;
         publishVelocities();
             }
-      if (cvui::button(frame, 400, 100, "Decrease Speed (X)")) {
-        linear_speed_ -= 0.1;
+      if (cvui::button(frame, 400, 140, "Left")) {
+        linear_speed_ = 0.0; // Move backward with negative speed
+        angular_speed_ = 0.5;
         publishVelocities();
             }
-      if (cvui::button(frame, 400, 140, "Increase Rotation (Z)")) {
-        angular_speed_ += 0.1;
-        publishVelocities();
-            }
-      if (cvui::button(frame, 400, 180, "Decrease Rotation (Z)")) {
-        angular_speed_ -= 0.1;
+      if (cvui::button(frame, 400, 180, "Right")) {
+        linear_speed_ = 0.0; // Move backward with negative speed
+        angular_speed_ = -0.5;
         publishVelocities();
             }
       if (cvui::button(frame, 400, 220, "STOP")) {
-        linear_speed_ = 0;
-        angular_speed_ = 0;
+        linear_speed_ = 0.0;
+        angular_speed_ = 0.0;
         publishVelocities();
             }
 
