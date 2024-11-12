@@ -4,6 +4,7 @@
 #include "robot_gui/cvui.h"
 #include "robotinfo_msgs/RobotInfo10Fields.h"
 #include <thread>
+#include <geometry_msgs/Twist.h>
 
 class RobotGUI {
 public:
@@ -11,6 +12,7 @@ public:
     // Initialize the subscriber and the GUI window
     info_sub_ =
         nh_.subscribe("/robot_info", 10, &RobotGUI::robotInfoCallback, this);
+    cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
     cvui::init("Robot Info GUI");
     cv::namedWindow("Robot Info GUI");
 
@@ -19,9 +21,8 @@ public:
   }
 
   ~RobotGUI() { ros_thread_.join(); }
-
-  void
-  robotInfoCallback(const robotinfo_msgs::RobotInfo10Fields::ConstPtr &msg) {
+  
+  void robotInfoCallback(const robotinfo_msgs::RobotInfo10Fields::ConstPtr &msg) {
     robot_description_ = msg->data_field_01;
     serial_number_ = msg->data_field_02;
     ip_address_ = msg->data_field_03;
@@ -41,6 +42,29 @@ public:
       cvui::text(frame, 20, 150, "Firmware Version: " + firmware_version_);
       cvui::text(frame, 20, 180, "Maximum Payload: " + maximum_payload_);
 
+      cvui::text(frame, 400, 30, "Teleoperation Control");
+      if (cvui::button(frame, 400, 60, "Increase Speed (X)")) {
+        linear_speed_ += 0.1;
+        publishVelocities();
+            }
+      if (cvui::button(frame, 400, 100, "Decrease Speed (X)")) {
+        linear_speed_ -= 0.1;
+        publishVelocities();
+            }
+      if (cvui::button(frame, 400, 140, "Increase Rotation (Z)")) {
+        angular_speed_ += 0.1;
+        publishVelocities();
+            }
+      if (cvui::button(frame, 400, 180, "Decrease Rotation (Z)")) {
+        angular_speed_ -= 0.1;
+        publishVelocities();
+            }
+      if (cvui::button(frame, 400, 220, "STOP")) {
+        linear_speed_ = 0;
+        angular_speed_ = 0;
+        publishVelocities();
+            }
+
       cvui::update();
       cv::imshow("Robot Info GUI", frame);
       if (cv::waitKey(20) == 27)
@@ -53,9 +77,18 @@ private:
   ros::Subscriber info_sub_;
   cv::Mat frame;
   std::thread ros_thread_;
+  ros::Publisher cmd_vel_pub_;
+  float linear_speed_, angular_speed_;
 
   std::string robot_description_, serial_number_, ip_address_,
       firmware_version_, maximum_payload_;
+
+  void publishVelocities() {
+        geometry_msgs::Twist vel_msg;
+        vel_msg.linear.x = linear_speed_;
+        vel_msg.angular.z = angular_speed_;
+        cmd_vel_pub_.publish(vel_msg);
+    }    
 
   void rosSpin() { ros::spin(); }
 };
