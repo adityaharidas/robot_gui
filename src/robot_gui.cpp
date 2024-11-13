@@ -68,7 +68,11 @@ public:
         angular_speed_ = 0.0;
         publishVelocities();
             }
-
+    // displaying current velocities
+      cvui::text(frame, 400, 260, "Current Velocities");
+      cvui::text(frame, 400, 290, "Linear Velocity (X): " + std::to_string(linear_speed_));
+      cvui::text(frame, 400, 320, "Angular Velocity (Z): " + std::to_string(angular_speed_));
+    
       cvui::update();
       cv::imshow("Robot Info GUI", frame);
       if (cv::waitKey(20) == 27)
