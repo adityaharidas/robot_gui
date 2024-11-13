@@ -6,14 +6,15 @@
 #include <nav_msgs/Odometry.h> 
 #include <thread>
 #include <geometry_msgs/Twist.h>
+#include <std_srvs/Trigger.h>
 
 class RobotGUI {
 public:
   RobotGUI() : frame(cv::Mat(600, 800, CV_8UC3)), nh_("~"), x_(0.0), y_(0.0), z_(0.0) {    // Initialize the subscriber and the GUI window
-    info_sub_ =
-        nh_.subscribe("/robot_info", 10, &RobotGUI::robotInfoCallback, this);
-        odom_sub_ = nh_.subscribe("/odom", 10, &RobotGUI::odomCallback, this);
+    info_sub_ = nh_.subscribe("/robot_info", 10, &RobotGUI::robotInfoCallback, this);
+    odom_sub_ = nh_.subscribe("/odom", 10, &RobotGUI::odomCallback, this);
     cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
+    distance_client_ = nh_.serviceClient<std_srvs::Trigger>("/get_distance");
     cvui::init("Robot Info GUI");
     cv::namedWindow("Robot Info GUI");
 
@@ -76,7 +77,8 @@ public:
         angular_speed_ = 0.0;
         publishVelocities();
             }
-    // Display current velocities
+
+      //Display current velocities
       cvui::text(frame, 400, 260, "Current Velocities");
       cvui::text(frame, 400, 290, "Linear Velocity (X): " + std::to_string(linear_speed_));
       cvui::text(frame, 400, 320, "Angular Velocity (Z): " + std::to_string(angular_speed_));
@@ -86,6 +88,13 @@ public:
       cvui::text(frame, 20, 250, "X: " + std::to_string(x_));
       cvui::text(frame, 20, 280, "Y: " + std::to_string(y_));
       cvui::text(frame, 20, 310, "Z: " + std::to_string(z_));
+
+      //Distance Tracker Service Button
+      if (cvui::button(frame, 400, 400, "Get Distance Traveled")) {
+        callGetDistanceService();
+      }
+
+      cvui::text(frame, 400, 430, "Distance Travelled: " + distance_traveled_);
 
       cvui::update();
       cv::imshow("Robot Info GUI", frame);
@@ -101,17 +110,27 @@ private:
   std::thread ros_thread_;
   ros::Publisher cmd_vel_pub_;
   float linear_speed_, angular_speed_;
-
+  ros::ServiceClient distance_client_;
   std::string robot_description_, serial_number_, ip_address_,
       firmware_version_, maximum_payload_;
   double x_, y_, z_;
+  std::string distance_traveled_;
   
   void publishVelocities() {
         geometry_msgs::Twist vel_msg;
         vel_msg.linear.x = linear_speed_;
         vel_msg.angular.z = angular_speed_;
         cmd_vel_pub_.publish(vel_msg);
-    }    
+    } 
+
+  void callGetDistanceService() {
+    std_srvs::Trigger srv;
+    if (distance_client_.call(srv)) {
+      distance_traveled_ = srv.response.message;
+    } else {
+      ROS_ERROR("Failed to call service /get_distance");
+    }
+  }   
 
   void rosSpin() { ros::spin(); }
 };
