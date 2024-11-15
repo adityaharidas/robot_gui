@@ -31,7 +31,9 @@ public:
     ip_address_ = msg->data_field_03;
     firmware_version_ = msg->data_field_04;
     maximum_payload_ = msg->data_field_05;
-    hydraulic_system_data_ = msg->data_field_06;  
+    hydraulic_system_data_ = msg->data_field_06;
+    hydraulic_oil_tank_fill_level_ = msg->data_field_07;
+    hydraulic_oil_pressure_ = msg->data_field_08;
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {
@@ -44,7 +46,7 @@ public:
     while (ros::ok()) {
       frame = cv::Scalar(49, 52, 49); // Background color
 
-      // General Info Area (Top of the screen)
+      // General Info Area
       cvui::text(frame, 20, 30, "General Info Area", 0.6);
       cvui::text(frame, 20, 60, "Robot Description: " + robot_description_);
       cvui::text(frame, 20, 90, "Serial Number: " + serial_number_);
@@ -52,55 +54,49 @@ public:
       cvui::text(frame, 20, 150, "Firmware Version: " + firmware_version_);
       cvui::text(frame, 20, 180, "Maximum Payload: " + maximum_payload_);
       cvui::text(frame, 20, 210, "Hydraulic System Data: " + hydraulic_system_data_);
+      cvui::text(frame, 20, 240, "Oil Tank Level: " + hydraulic_oil_tank_fill_level_);
+      cvui::text(frame, 20, 270, "Oil Pressure: " + hydraulic_oil_pressure_);
 
-      // Teleoperation Controls 
-      cvui::text(frame, 400, 30, "Teleoperation Control", 0.6);
+      // Robot Position (Odometry)
+      cvui::text(frame, 20, 310, "Robot Position (Odometry)", 0.6);
+      cvui::text(frame, 20, 340, "X: " + std::to_string(x_));
+      cvui::text(frame, 20, 370, "Y: " + std::to_string(y_));
+      cvui::text(frame, 20, 400, "Z: " + std::to_string(z_));
 
-      // Forward and Backward Buttons
-      if (cvui::button(frame, 400, 60, "Forward")) {
-        linear_speed_ += speed_increment_;  // Increase speed gradually
-      }
-      if (cvui::button(frame, 400, 120, "Backward")) {
-        linear_speed_ -= speed_increment_;  // Decrease speed gradually
-      }
+      // Teleoperation Controls
+      cvui::text(frame, 420, 30, "Teleoperation Control", 0.6);
 
-      // Left and Right Buttons
-      if (cvui::button(frame, 400, 180, "Left")) {
-        angular_speed_ += speed_increment_;  // Increase angular speed
+      // Positioning the buttons for teleoperation
+      if (cvui::button(frame, 460, 60, "Forward")) {
+        linear_speed_ += speed_increment_;
       }
-      if (cvui::button(frame, 400, 240, "Right")) {
-        angular_speed_ -= speed_increment_;  // Decrease angular speed
+      if (cvui::button(frame, 450, 90, "Left")) {
+        angular_speed_ += speed_increment_;
       }
-
-      // Stop Button
-      if (cvui::button(frame, 400, 300, "Stop")) {
+      if (cvui::button(frame, 510, 90, "Right")) {
+        angular_speed_ -= speed_increment_;
+      }
+      if (cvui::button(frame, 460, 120, "Backward")) {
+        linear_speed_ -= speed_increment_;
+      }
+      if (cvui::button(frame, 480, 160, "Stop")) {
         linear_speed_ = 0.0;
         angular_speed_ = 0.0;
       }
 
-      // Publish velocities continuously
-      publishVelocities();
+      // Display current velocities
+      cvui::text(frame, 420, 290, "Current Velocities", 0.6);
+      cvui::text(frame, 420, 320, "Linear Velocity (X): " + std::to_string(linear_speed_));
+      cvui::text(frame, 420, 350, "Angular Velocity (Z): " + std::to_string(angular_speed_));
 
-      // Current Velocities
-      cvui::text(frame, 400, 350, "Current Velocities", 0.6);
-      cvui::text(frame, 400, 380, "Linear Velocity (X): " + std::to_string(linear_speed_));
-      cvui::text(frame, 400, 410, "Angular Velocity (Z): " + std::to_string(angular_speed_));
-
-      // Robot Position
-      cvui::text(frame, 20, 250, "Robot Position (Odometry)", 0.6);
-      cvui::text(frame, 20, 280, "X: " + std::to_string(x_));
-      cvui::text(frame, 20, 310, "Y: " + std::to_string(y_));
-      cvui::text(frame, 20, 340, "Z: " + std::to_string(z_));
-
-      // Distance Tracker Service Button
-      cvui::text(frame, 400, 450, "Distance Tracker", 0.6);
-      if (cvui::button(frame, 400, 480, "Get Distance Traveled")) {
+      // Distance Tracker
+      cvui::text(frame, 420, 380, "Distance Tracker", 0.6);
+      if (cvui::button(frame, 420, 410, "Get Distance Traveled")) {
         callGetDistanceService();
       }
+      cvui::text(frame, 420, 440, "Distance Traveled: " + distance_traveled_);
 
-      // Display Distance Traveled
-      cvui::text(frame, 400, 510, "Distance Travelled: " + distance_traveled_);
-
+      // Update GUI
       cvui::update();
       cv::imshow("Robot Info GUI", frame);
       if (cv::waitKey(20) == 27)
@@ -117,10 +113,11 @@ private:
   float linear_speed_, angular_speed_;
   ros::ServiceClient distance_client_;
   std::string robot_description_, serial_number_, ip_address_,
-      firmware_version_, maximum_payload_, hydraulic_system_data_;
+      firmware_version_, maximum_payload_, hydraulic_system_data_,
+      hydraulic_oil_tank_fill_level_, hydraulic_oil_pressure_;
   double x_, y_, z_;
   std::string distance_traveled_;
-  float speed_increment_;  // Speed change increment
+  float speed_increment_;
 
   void publishVelocities() {
     geometry_msgs::Twist vel_msg;
