@@ -15,19 +15,38 @@ This project implements a graphical user interface (GUI) for robot control using
 🧾 Robot Information Display (serial number, IP, firmware, payload, etc.)
 
 ### Technical Components
-distance_tracker_service.cpp – ROS service that tracks and reports distance traveled
+- distance_tracker_service.cpp – ROS service that tracks and reports distance traveled
 
-robot_gui.cpp – Main GUI application with control interface
+- robot_gui.cpp – Main GUI application with control interface
 
-cvui.h – Lightweight GUI library for OpenCV (custom implementation)
+- cvui.h – Lightweight GUI library for OpenCV (custom implementation)
 
-### Technical Stack
-- First item C++14/17
+## Technical Stack
+- C++14/17
 
-- Second item ROS (Robot Operating System)
+- ROS (Robot Operating System)
 
-OpenCV for computer vision and GUI rendering
+- OpenCV for computer vision and GUI rendering
 
-CVUI for lightweight UI components
+- CVUI for lightweight UI components
 
-Multi-threading for concurrent ROS and GUI operations
+- Multi-threading for concurrent ROS and GUI operations
+
+## Installation & Usage
+### Prerequisites
+- ROS (Noetic or later)
+
+- OpenCV 4.x
+
+- CMake 3.10+
+
+### Build Instructions
+```bash 
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
+git clone https://github.com/adityaharidas/robot_gui.git
+cd ..
+catkin_make
+source devel/setup.bash
+```
+
