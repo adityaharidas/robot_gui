@@ -49,4 +49,91 @@ cd ..
 catkin_make
 source devel/setup.bash
 ```
+## Key Code Components & Function Summaries
+### Distance Tracker Node
+This ROS node continuously tracks the distance the robot travels by subscribing to the /odom topic and offering a /get_distance service.
+- odomCallback(...)
+
+    - Subscribes to /odom topic
+
+    - Updates robot's x, y position
+
+    - Calculates Euclidean distance from the previous position
+
+- getDistanceCallback(...)
+
+    - Implements the /get_distance service
+
+    - Returns the total distance traveled as a string response
+
+### Main GUI Application
+This file defines the GUI interface and its integration with ROS. It displays robot info, position, controls, and distance in real time using OpenCV and CVUI.
+
+- robotInfoCallback(...)
+
+    - Subscribes to /robot_info
+
+    - Updates GUI fields like robot description, IP, firmware version, etc.
+
+- odomCallback(...)
+
+    - Subscribes to /odom
+
+    - Updates live robot position (X, Y, Z)
+
+- run()
+
+    - Main GUI loop
+
+    - Handles button rendering and interaction
+
+    - Displays:
+
+        - Robot general info
+
+        - Teleoperation buttons
+
+        - Live odometry position
+
+        - Velocity feedback
+
+        - Distance tracker output
+
+- publishVelocities()
+
+    - Publishes velocity commands to /cmd_vel
+
+    - Triggered continuously when teleoperation buttons are pressed
+
+- callGetDistanceService()
+
+  - Calls /get_distance service
+
+    - Updates the GUI with the distance traveled
+
+- rosSpin()
+
+  - Keeps ROS spinning in a separate thread so the GUI stays responsive
+
+### GUI Framework
+- Lightweight OpenCV-based UI header library
+  
+- Provides rendering for:
+   
+  - Text labels
+
+  - Buttons
+
+  - Interactive elements
+
+- Integrated directly into the OpenCV display window
+  
+## Potential Improvements
+- Add ROS parameter configuration
+
+- Implement trajectory recording/playback
+
+- Add sensor data visualization (LIDAR, camera)
+
+- Support for multiple robot types
 
